@@ -1,0 +1,51 @@
+---
+title: "Multiple Linear Regression"
+author: "Jeffrey Cuevas"
+date: "3/6/2022"
+output: html_document
+---
+
+Multiple linear regression is used to predict an outcome variable (y) on the basis of multiple distinct predictor variables (x).  
+*y = b0 + b1(x1) + b2(x2)*  
+"b" values are called regression weights (beta coefficients).  They measure the association between the predictor variable and the outcome.  
+"b0" = regression coefficient of the Intercept.  
+
+For this example, we will use a sample dataset from a transcription service called Scribe.  Data contains attributes for approximate age in minutes, audio quality score assigned by an algorithm detecting how good the sound is, and file length in seconds.  The approximate age is the time it takes for an audio file to be manually transcribed.  We want to predict a value for approximate age based on the audio quality score and file length.
+
+The following R packages are required:
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+library(readr)
+```
+
+Load the data and select only the columns we will be using:
+```{r data, message=FALSE, warning=FALSE}
+ds <- read.csv("Jobs.csv", header = TRUE)
+ds$AudioQualityScore <- as.numeric(ds$AudioQualityScore)
+ds_filtered <- select(ds, c("ApproximateAge", "AudioQualityScore", "LengthSeconds"))
+head(ds_filtered, 5)
+```
+
+Now, we will build a model for estimating age based on the audio quality score and the file length:
+```{r regression_model, message=FALSE, warning=FALSE}
+model <- lm(ApproximateAge ~ AudioQualityScore + LengthSeconds, data = ds_filtered)
+summary(model)
+```
+
+The t-statistics evaluate whether or not there is significant association between the predictor and outcome variables.
+
+The model equation can be written as follows:
+
+### Approximate Age = 50.32 + (-60.52)(Audio Quality Score) + (0.02032)(File Length)
+
+The confidence interval of the model coefficient can be extracted using the following:
+```{r}
+confint(model)
+```
+
+The residual standard error gives a measure of error of prediction.  The lower the residual standard error, the more accurate the model is.  The error rate can be estimated by dividing the residual standard error by the mean outcome variable:
+```{r}
+sigma(model)/mean(ds_filtered$ApproximateAge)
+```
+
+The RSE is 45.6 corresponding to 267% error rate.  This model could be used for predicting approximate ages based on the predictor variables.
